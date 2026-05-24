@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FOOD BINGO 食</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Ewert&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Noto+Sans+JP:wght@900&display=swap" rel="stylesheet">
+
+<style>
+/* ─────────────────────────────────────────
+   TOKENS
+───────────────────────────────────────── */
+:root {
+  --ink:      #0d0d0d;
+  --paper:    #f5f0e8;
+  --red:      #e8001c;
+  --red-dark: #9b0012;
+  --yellow:   #ffe620;
+  --panel-bg: #f7f2e4;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+/* ─────────────────────────────────────────
+   BODY — manga page texture
+───────────────────────────────────────── */
+body {
+  font-family: 'Bangers', 'Noto Sans JP', cursive;
+  background-color: var(--ink);
+  background-image:
+    /* Speed lines radiating from top-center */
+    repeating-conic-gradient(
+      from 0deg at 50% -20%,
+      rgba(255,255,255,0.03) 0deg 1.2deg,
+      transparent 1.2deg 3deg
+    );
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 0 40px;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Halftone dot overlay on body */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 10px 10px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─────────────────────────────────────────
+   HEADER PANEL — manga chapter title page
+───────────────────────────────────────── */
+.header {
+  width: 100%;
+  background: var(--red);
+  border-bottom: 5px solid var(--ink);
+  position: relative;
+  padding: 14px 16px 12px;
+  text-align: center;
+  z-index: 1;
+  overflow: hidden;
+}
+
+/* Speed lines inside header */
+.header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-conic-gradient(
+    from 0deg at 50% 200%,
+    rgba(0,0,0,0.08) 0deg 1deg,
+    transparent 1deg 2.5deg
+  );
+  pointer-events: none;
+}
+
+/* White stripe accent */
+.header::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 0;
+  height: 4px;
+  background: var(--yellow);
+}
+
+.header-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.header-jp {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 900;
+  font-size: 11px;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.header-svg {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  overflow: visible;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+}
+
+.header-title {
+  font-family: 'Ewert', cursive;
+  font-size: 46px;
+  line-height: 0.95;
+  letter-spacing: 4px;
+  color: var(--yellow);
+  /* Carved wood look: thick ink stroke + layered shadow depths */
+  -webkit-text-stroke: 2px var(--ink);
+  text-stroke: 2px var(--ink);
+  paint-order: stroke fill;
+  text-shadow:
+    2px 2px 0 #8B4500,
+    4px 4px 0 var(--ink),
+    6px 6px 0 rgba(0,0,0,0.35),
+    0 0 30px rgba(0,0,0,0.4);
+  position: relative;
+}
+
+/* Action starburst behind title */
+.starburst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120px;
+  height: 120px;
+  background: var(--yellow);
+  clip-path: polygon(
+    50% 0%, 61% 35%, 98% 35%, 68% 57%,
+    79% 91%, 50% 70%, 21% 91%, 32% 57%,
+    2% 35%, 39% 35%
+  );
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+/* ─────────────────────────────────────────
+   PROGRESS — manga-style gauge
+───────────────────────────────────────── */
+.progress-panel {
+  width: calc(100% - 24px);
+  max-width: 420px;
+  margin: 14px auto 0;
+  position: relative;
+  z-index: 1;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 4px;
+  padding: 8px 12px 9px;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.progress-panel::before {
+  content: 'MISSION STATUS';
+  font-family: 'Bangers', cursive;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--ink);
+  opacity: 0.4;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.progress-track {
+  flex: 1;
+  height: 14px;
+  background: var(--ink);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Halftone inside track */
+.progress-track::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px);
+  background-size: 5px 5px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--red);
+  position: relative;
+  transition: width 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  /* Diagonal stripe overlay */
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 4px,
+    rgba(255,255,255,0.15) 4px,
+    rgba(255,255,255,0.15) 8px
+  );
+}
+
+/* Moving shine on fill */
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 40px;
+  right: -20px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: shineSweep 1.8s ease-in-out infinite;
+}
+
+@keyframes shineSweep {
+  0%   { opacity: 0; transform: translateX(-60px); }
+  50%  { opacity: 1; }
+  100% { opacity: 0; transform: translateX(60px); }
+}
+
+.progress-count {
+  font-family: 'Bangers', cursive;
+  font-size: 20px;
+  color: var(--ink);
+  letter-spacing: 1px;
+  white-space: nowrap;
+  min-width: 52px;
+  text-align: right;
+}
+
+/* ─────────────────────────────────────────
+   GRID WRAPPER
+───────────────────────────────────────── */
+.grid-wrap {
+  width: calc(100% - 24px);
+  max-width: 420px;
+  margin: 12px auto 0;
+  position: relative;
+  z-index: 1;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+/* ─────────────────────────────────────────
+   CARD — manga panel
+───────────────────────────────────────── */
+.card {
+  background: var(--panel-bg);
+  border: 3.5px solid var(--ink);
+  border-radius: 3px;
+  aspect-ratio: 0.82;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+  /* Offset shadow = manga panel drop shadow */
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.15s;
+
+  /* Stagger reveal */
+  opacity: 0;
+  animation: panelReveal 0.35s ease forwards;
+}
+
+@keyframes panelReveal {
+  from { opacity: 0; transform: scale(0.88) rotate(-2deg); }
+  to   { opacity: 1; transform: scale(1)    rotate(0deg); }
+}
+
+.card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--ink);
+}
+
+.card:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+  transition: transform 0.07s, box-shadow 0.07s;
+}
+
+/* ── Halftone dot background on card */
+.card-bg {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(0,0,0,0.09) 1.2px, transparent 1.2px);
+  background-size: 7px 7px;
+  z-index: 0;
+}
+
+/* ── Action burst / speed lines behind food image */
+.card-burst {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 105%;
+  aspect-ratio: 1;
+  z-index: 1;
+  pointer-events: none;
+
+  /* SVG speed-line burst via conic-gradient */
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255,255,255,0.85) 0deg 2deg,
+    rgba(230,210,170,0.2) 2deg 6deg
+  );
+  border-radius: 50%;
+  mask-image: radial-gradient(circle, black 25%, transparent 72%);
+  -webkit-mask-image: radial-gradient(circle, black 25%, transparent 72%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.card:hover .card-burst { opacity: 0.9; }
+
+/* ── Food image — THE FOCAL POINT */
+.food-wrap {
+  position: absolute;
+  /* Occupy most of the card, slightly off-center upward */
+  top: 6%;
+  left: 5%;
+  right: 5%;
+  bottom: 28%; /* leave room for label */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.food-img {
+  width: 88%;
+  height: 88%;
+  object-fit: contain;
+  /* Manga ink border via drop-shadow */
+  filter:
+    drop-shadow(-2px -2px 0 var(--ink))
+    drop-shadow( 2px -2px 0 var(--ink))
+    drop-shadow(-2px  2px 0 var(--ink))
+    drop-shadow( 2px  2px 0 var(--ink))
+    drop-shadow( 0px  5px 8px rgba(0,0,0,0.28));
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), filter 0.2s;
+  display: block;
+}
+
+.card:hover .food-img {
+  transform: scale(1.1) rotate(-3deg);
+}
+
+/* ── Name label — manga speech/caption style */
+.card-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--ink);
+  padding: 5px 4px 6px;
+  text-align: center;
+  z-index: 3;
+  border-top: 2px solid var(--ink);
+}
+
+.card-name {
+  font-family: 'Bangers', cursive;
+  font-size: clamp(10px, 3vw, 13.5px);
+  color: #fff;
+  letter-spacing: 1.5px;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+/* ── STAMPED STATE ── */
+.card.stamped {
+  background: #e8e0cc;
+}
+
+.card.stamped .card-bg {
+  background-image: radial-gradient(circle, rgba(0,0,0,0.13) 1.4px, transparent 1.4px);
+}
+
+.card.stamped .food-img {
+  filter:
+    saturate(0) opacity(0.25)
+    drop-shadow( 0px 4px 6px rgba(0,0,0,0.2));
+  transform: scale(0.78);
+}
+
+.card.stamped:hover .food-img {
+  transform: scale(0.78); /* no hover zoom when stamped */
+}
+
+/* ── Manga STAMP — big bold action mark */
+.stamp-layer {
+  position: absolute;
+  inset: 0 0 24px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.card.stamped .stamp-layer { opacity: 1; }
+
+.stamp-shape {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Starburst shape behind the check */
+.stamp-star {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  background: var(--red);
+  /* 8-point star via clip-path */
+  clip-path: polygon(
+    50% 0%, 61% 35%, 98% 25%, 75% 50%,
+    98% 75%, 61% 65%, 50% 100%, 39% 65%,
+    2% 75%, 25% 50%, 2% 25%, 39% 35%
+  );
+  border: none;
+}
+
+.stamp-star::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  background: var(--yellow);
+  clip-path: inherit;
+  border-radius: 0;
+  opacity: 0.3;
+}
+
+.stamp-kanji {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 900;
+  font-size: 26px;
+  color: #fff;
+  -webkit-text-stroke: 1px var(--ink);
+  text-stroke: 1px var(--ink);
+  paint-order: stroke fill;
+  position: relative;
+  z-index: 1;
+  line-height: 1;
+  text-shadow: 1px 1px 0 var(--ink);
+}
+
+@keyframes stampWhack {
+  0%   { transform: scale(0) rotate(25deg); opacity: 0; }
+  55%  { transform: scale(1.25) rotate(-8deg); opacity: 1; }
+  75%  { transform: scale(0.92) rotate(3deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.card.just-stamped .stamp-layer {
+  animation: stampWhack 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards;
+}
+
+/* ── Stamped label turns red ── */
+.card.stamped .card-label { background: var(--red); }
+
+/* ─────────────────────────────────────────
+   RESET BUTTON
+───────────────────────────────────────── */
+.reset-btn {
+  margin-top: 16px;
+  position: relative;
+  z-index: 1;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  color: var(--ink);
+  padding: 9px 28px;
+  font-family: 'Bangers', cursive;
+  font-size: 17px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: transform 0.12s, box-shadow 0.12s;
+  border-radius: 2px;
+}
+
+.reset-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.reset-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+/* ─────────────────────────────────────────
+   BINGO OVERLAY — manga splash page
+───────────────────────────────────────── */
+.bingo-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10,10,10,0.92);
+  /* Speed lines background */
+  background-image:
+    rgba(10,10,10,0.92),
+    repeating-conic-gradient(
+      from 0deg at 50% 50%,
+      rgba(255,255,255,0.04) 0deg 1deg,
+      transparent 1deg 3deg
+    );
+}
+
+.bingo-overlay.show {
+  display: flex;
+  animation: fadeIn 0.3s ease;
+}
+
+.bingo-box {
+  background: var(--paper);
+  border: 5px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--ink), 0 0 0 2px var(--yellow);
+  padding: 28px 32px 32px;
+  text-align: center;
+  max-width: 300px;
+  width: 82vw;
+  position: relative;
+  overflow: hidden;
+  animation: boxSlam 0.45s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes boxSlam {
+  0%   { transform: scale(0.2) rotate(-15deg); opacity: 0; }
+  100% { transform: scale(1)   rotate(0deg);   opacity: 1; }
+}
+
+/* Yellow stripe at top of bingo box */
+.bingo-box::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 8px;
+  background: var(--yellow);
+  border-bottom: 3px solid var(--ink);
+}
+
+/* Halftone dots in bingo box */
+.bingo-box::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(0,0,0,0.06) 1px, transparent 1px);
+  background-size: 8px 8px;
+  pointer-events: none;
+}
+
+.bingo-inner { position: relative; z-index: 1; margin-top: 10px; }
+
+.bingo-sfx {
+  font-family: 'Bangers', cursive;
+  font-size: 14px;
+  letter-spacing: 4px;
+  color: var(--red);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.bingo-word {
+  font-family: 'Ewert', cursive;
+  font-size: 68px;
+  line-height: 0.9;
+  color: var(--red);
+  -webkit-text-stroke: 2px var(--ink);
+  text-stroke: 2px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 3px 3px 0 #8B0000, 5px 5px 0 var(--ink);
+  letter-spacing: 4px;
+  display: block;
+}
+
+.bingo-sub {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 900;
+  font-size: 11px;
+  color: var(--ink);
+  margin-top: 10px;
+  line-height: 1.6;
+  letter-spacing: 0.5px;
+}
+
+.bingo-btn {
+  margin-top: 18px;
+  background: var(--red);
+  border: 3px solid var(--ink);
+  color: var(--yellow);
+  padding: 10px 28px;
+  font-family: 'Bangers', cursive;
+  font-size: 20px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: transform 0.1s, box-shadow 0.1s;
+  border-radius: 2px;
+  -webkit-text-stroke: 1px var(--ink);
+  text-stroke: 1px var(--ink);
+}
+
+.bingo-btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+/* ─────────────────────────────────────────
+   CONFETTI
+───────────────────────────────────────── */
+.confetti-piece {
+  position: fixed;
+  pointer-events: none;
+  z-index: 200;
+  animation: confettiFall linear forwards;
+}
+
+@keyframes confettiFall {
+  0%   { transform: translateY(-20px) rotate(0deg);   opacity: 1; }
+  100% { transform: translateY(105vh) rotate(600deg); opacity: 0; }
+}
+
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="header">
+  <div class="starburst"></div>
+  <div class="header-inner">
+    <div class="header-jp">日本食ビンゴ</div>
+    <!-- SVG title — woodcut carved look, no font dependency -->
+    <svg class="header-svg" viewBox="0 0 420 72" xmlns="http://www.w3.org/2000/svg" aria-label="FOOD BINGO">
+      <defs>
+        <!-- Wood grain filter -->
+        <filter id="woodgrain" x="-5%" y="-5%" width="110%" height="110%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.065 0.8" numOctaves="3" seed="8" result="noise"/>
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.5" xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+        <!-- Carved bevel: inner shadow -->
+        <filter id="carve" x="-2%" y="-2%" width="104%" height="104%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="1.5" result="blur"/>
+          <feOffset dx="1.5" dy="2" result="offsetBlur"/>
+          <feComposite in="SourceGraphic" in2="offsetBlur" operator="over"/>
+        </filter>
+      </defs>
+
+      <!-- Deep shadow layer (darkest, offset most) -->
+      <text x="212" y="58" text-anchor="middle"
+            font-family="'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif"
+            font-weight="900" font-size="58" letter-spacing="6"
+            fill="#3a1a00" filter="url(#woodgrain)">FOOD BINGO</text>
+
+      <!-- Mid shadow layer -->
+      <text x="210.5" y="56.5" text-anchor="middle"
+            font-family="'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif"
+            font-weight="900" font-size="58" letter-spacing="6"
+            fill="#7a3500">FOOD BINGO</text>
+
+      <!-- Ink outline -->
+      <text x="209" y="55" text-anchor="middle"
+            font-family="'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif"
+            font-weight="900" font-size="58" letter-spacing="6"
+            fill="none" stroke="#0d0d0d" stroke-width="5"
+            stroke-linejoin="round">FOOD BINGO</text>
+
+      <!-- Wood grain texture layer -->
+      <text x="209" y="55" text-anchor="middle"
+            font-family="'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif"
+            font-weight="900" font-size="58" letter-spacing="6"
+            fill="#d4820a" filter="url(#woodgrain)">FOOD BINGO</text>
+
+      <!-- Top highlight fill — yellow gold -->
+      <text x="209" y="55" text-anchor="middle"
+            font-family="'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif"
+            font-weight="900" font-size="58" letter-spacing="6"
+            fill="url(#goldgrad)">FOOD BINGO</text>
+
+      <defs>
+        <linearGradient id="goldgrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#fff6a0"/>
+          <stop offset="30%"  stop-color="#ffe620"/>
+          <stop offset="70%"  stop-color="#d4920a"/>
+          <stop offset="100%" stop-color="#a06000"/>
+        </linearGradient>
+        <!-- Carved groove lines across letters -->
+        <pattern id="grooves" x="0" y="0" width="4" height="100%" patternUnits="userSpaceOnUse">
+          <line x1="0" y1="0" x2="0" y2="100%" stroke="rgba(0,0,0,0.08)" stroke-width="0.8"/>
+        </pattern>
+        <clipPath id="textClip">
+          <text x="209" y="55" text-anchor="middle"
+                font-family="'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif"
+                font-weight="900" font-size="58" letter-spacing="6">FOOD BINGO</text>
+        </clipPath>
+      </defs>
+
+      <!-- Groove lines clipped to text shape -->
+      <rect x="0" y="0" width="420" height="72" fill="url(#grooves)" clip-path="url(#textClip)" opacity="0.6"/>
+
+      <!-- Final thin ink stroke on top -->
+      <text x="209" y="55" text-anchor="middle"
+            font-family="'Palatino Linetto', 'Book Antiqua', Palatino, Georgia, serif"
+            font-weight="900" font-size="58" letter-spacing="6"
+            fill="none" stroke="#0d0d0d" stroke-width="1.2">FOOD BINGO</text>
+    </svg>
+  </div>
+</header>
+
+<!-- ── PROGRESS ── -->
+<div class="progress-panel">
+  <div class="progress-row">
+    <div class="progress-track" style="flex:1">
+      <div class="progress-fill" id="prog-fill" style="width:0%"></div>
+    </div>
+    <span class="progress-count" id="prog-count">0&nbsp;/&nbsp;18</span>
+  </div>
+</div>
+
+<!-- ── GRID ── -->
+<div class="grid-wrap">
+  <div class="grid" id="grid"></div>
+</div>
+
+<button class="reset-btn" onclick="resetAll()">↺ NEW GAME</button>
+
+<!-- ── BINGO OVERLAY ── -->
+<div class="bingo-overlay" id="bingo-overlay">
+  <div class="bingo-box">
+    <div class="bingo-inner">
+      <div class="bingo-sfx">★ COMPLETE! ★</div>
+      <span class="bingo-word">BINGO!</span>
+      <div class="bingo-sub">
+        All 18 foods conquered!<br>
+        ごちそうさまでした 🙏
+      </div>
+      <button class="bingo-btn" onclick="closeBingo()">PLAY AGAIN</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TW = 'https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/svg/';
+
+const FOODS = [
+  { id:1,  name:'Sushi',          cp:'1f363', fb:'🍣' },  // nigiri sushi ✅
+  { id:2,  name:'Ramen',          cp:'1f35c', fb:'🍜' },  // steaming noodle bowl ✅
+  { id:3,  name:'Udon',           cp:'1f35c', fb:'🍜' },  // steaming noodle bowl (best available)
+  { id:4,  name:'Tempura',        cp:'1f364', fb:'🍤' },  // fried shrimp ✅
+  { id:5,  name:'Takoyaki',       cp:'1f419', fb:'🐙' },  // octopus ✅
+  { id:6,  name:'Okonomiyaki',    cp:'1f958', fb:'🥘' },  // shallow pan ✅
+  { id:7,  name:'Yakitori',       cp:'1f362', fb:'🍢' },  // oden skewer ✅
+  { id:8,  name:'Tonkatsu',       cp:'1f969', fb:'🥩' },  // cut of meat ✅
+  { id:9,  name:'Donburi',        cp:'1f35a', fb:'🍚' },  // rice bowl ✅
+  { id:10, name:'Curry',          cp:'1f35b', fb:'🍛' },  // curry rice ✅
+  { id:11, name:'Mochi',          cp:'1f361', fb:'🍡' },  // dango ✅
+  { id:12, name:'Taiyaki',        cp:'1f365', fb:'🍥' },  // fish cake with swirl — Japanese narutomaki ✅ (was wrong blue fish)
+  { id:13, name:'Onigiri',        cp:'1f359', fb:'🍙' },  // rice ball ✅
+  { id:14, name:'Gyoza',          cp:'1f95f', fb:'🥟' },  // dumpling ✅
+  { id:15, name:'Yakisoba',       cp:'1f372', fb:'🍲' },  // pot of food — stir-fried noodles (was wrong frying egg)
+  { id:16, name:'Edamame',        cp:'1f96c', fb:'🥬' },  // leafy green — closest to edamame (was tamale)
+  { id:17, name:'Soba',           cp:'1f963', fb:'🥣' },  // bowl with spoon — noodle bowl (was bread loaf!)
+  { id:18, name:'Shabu Shabu',    cp:'1fad5', fb:'🫕' },  // fondue/hot pot ✅
+];
+
+const STORAGE_KEY = 'jp-bingo-manga-v1';
+
+function getStamped() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch { return []; }
+}
+function setStamped(arr) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+}
+
+function renderGrid() {
+  const stamped = getStamped();
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+
+  FOODS.forEach((food, i) => {
+    const isStamped = stamped.includes(food.id);
+    const delay = i * 45;
+
+    const card = document.createElement('div');
+    card.className = 'card' + (isStamped ? ' stamped' : '');
+    card.style.animationDelay = delay + 'ms';
+
+    card.innerHTML = `
+      <div class="card-bg"></div>
+      <div class="card-burst"></div>
+
+      <div class="food-wrap">
+        <img class="food-img"
+             src="${TW}${food.cp}.svg"
+             alt="${food.name}"
+             loading="lazy"
+             onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'${food.fb}',style:'font-size:52px;line-height:1;filter:drop-shadow(-2px -2px 0 #0d0d0d) drop-shadow(2px 2px 0 #0d0d0d)'}))"
+        >
+      </div>
+
+      <div class="stamp-layer">
+        <div class="stamp-shape">
+          <div class="stamp-star"></div>
+          <span class="stamp-kanji">食</span>
+        </div>
+      </div>
+
+      <div class="card-label">
+        <span class="card-name">${food.name}</span>
+      </div>
+    `;
+
+    card.addEventListener('click', () => toggleCard(food.id, card));
+    grid.appendChild(card);
+  });
+
+  updateProgress(stamped.length);
+}
+
+function toggleCard(id, cardEl) {
+  let stamped = getStamped();
+
+  if (stamped.includes(id)) {
+    stamped = stamped.filter(x => x !== id);
+    cardEl.classList.remove('stamped', 'just-stamped');
+  } else {
+    stamped.push(id);
+    cardEl.classList.remove('just-stamped');
+    void cardEl.offsetWidth; // reflow to restart animation
+    cardEl.classList.add('stamped', 'just-stamped');
+    setTimeout(() => cardEl.classList.remove('just-stamped'), 500);
+  }
+
+  setStamped(stamped);
+  updateProgress(stamped.length);
+  if (stamped.length === FOODS.length) setTimeout(showBingo, 650);
+}
+
+function updateProgress(n) {
+  document.getElementById('prog-count').textContent = `${n} / ${FOODS.length}`;
+  document.getElementById('prog-fill').style.width = `${(n / FOODS.length) * 100}%`;
+}
+
+function showBingo() {
+  document.getElementById('bingo-overlay').classList.add('show');
+  launchConfetti();
+}
+
+function closeBingo() {
+  document.getElementById('bingo-overlay').classList.remove('show');
+  resetAll();
+}
+
+function resetAll() {
+  setStamped([]);
+  renderGrid();
+  document.getElementById('bingo-overlay').classList.remove('show');
+}
+
+function launchConfetti() {
+  const cols = ['#e8001c','#ffe620','#f5f0e8','#0d0d0d','#ffffff'];
+  for (let i = 0; i < 80; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    const size = 6 + Math.random() * 10;
+    el.style.cssText = `
+      left:${Math.random()*100}vw;
+      top:0;
+      width:${size}px;
+      height:${Math.random() > 0.4 ? size : size * 0.4}px;
+      background:${cols[Math.floor(Math.random()*cols.length)]};
+      border:${Math.random()>0.6 ? '2px solid #0d0d0d' : 'none'};
+      border-radius:${Math.random()>0.5?'0':'50%'};
+      animation-duration:${1.4+Math.random()*2.2}s;
+      animation-delay:${Math.random()*0.8}s;
+    `;
+    document.body.appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
+  }
+}
+
+renderGrid();
+</script>
+</body>
+</html>
