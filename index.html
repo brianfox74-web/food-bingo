@@ -355,16 +355,10 @@ body::before {
 }
 
 .food-img {
-  width: 88%;
-  height: 88%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
-  /* Manga ink border via drop-shadow */
-  filter:
-    drop-shadow(-2px -2px 0 var(--ink))
-    drop-shadow( 2px -2px 0 var(--ink))
-    drop-shadow(-2px  2px 0 var(--ink))
-    drop-shadow( 2px  2px 0 var(--ink))
-    drop-shadow( 0px  5px 8px rgba(0,0,0,0.28));
+  object-position: center;
   transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), filter 0.2s;
   display: block;
 }
@@ -405,10 +399,8 @@ body::before {
 }
 
 .card.stamped .food-img {
-  filter:
-    saturate(0) opacity(0.25)
-    drop-shadow( 0px 4px 6px rgba(0,0,0,0.2));
   transform: scale(0.78);
+  filter: saturate(0) opacity(0.25);
 }
 
 .card.stamped:hover .food-img {
@@ -775,27 +767,25 @@ body::before {
 </div>
 
 <script>
-const TW = 'https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/svg/';
-
 const FOODS = [
-  { id:1,  name:'Sushi',          cp:'1f363', fb:'🍣' },  // nigiri sushi ✅
-  { id:2,  name:'Ramen',          cp:'1f35c', fb:'🍜' },  // steaming noodle bowl ✅
-  { id:3,  name:'Udon',           cp:'1f35c', fb:'🍜' },  // steaming noodle bowl (best available)
-  { id:4,  name:'Tempura',        cp:'1f364', fb:'🍤' },  // fried shrimp ✅
-  { id:5,  name:'Takoyaki',       cp:'1f419', fb:'🐙' },  // octopus ✅
-  { id:6,  name:'Okonomiyaki',    cp:'1f958', fb:'🥘' },  // shallow pan ✅
-  { id:7,  name:'Yakitori',       cp:'1f362', fb:'🍢' },  // oden skewer ✅
-  { id:8,  name:'Tonkatsu',       cp:'1f969', fb:'🥩' },  // cut of meat ✅
-  { id:9,  name:'Donburi',        cp:'1f35a', fb:'🍚' },  // rice bowl ✅
-  { id:10, name:'Curry',          cp:'1f35b', fb:'🍛' },  // curry rice ✅
-  { id:11, name:'Mochi',          cp:'1f361', fb:'🍡' },  // dango ✅
-  { id:12, name:'Taiyaki',        cp:'1f365', fb:'🍥' },  // fish cake with swirl — Japanese narutomaki ✅ (was wrong blue fish)
-  { id:13, name:'Onigiri',        cp:'1f359', fb:'🍙' },  // rice ball ✅
-  { id:14, name:'Gyoza',          cp:'1f95f', fb:'🥟' },  // dumpling ✅
-  { id:15, name:'Yakisoba',       cp:'1f372', fb:'🍲' },  // pot of food — stir-fried noodles (was wrong frying egg)
-  { id:16, name:'Edamame',        cp:'1f96c', fb:'🥬' },  // leafy green — closest to edamame (was tamale)
-  { id:17, name:'Soba',           cp:'1f963', fb:'🥣' },  // bowl with spoon — noodle bowl (was bread loaf!)
-  { id:18, name:'Shabu Shabu',    cp:'1fad5', fb:'🫕' },  // fondue/hot pot ✅
+  { id:1,  name:'Sushi',       img:'icons/sushi.jpg' },
+  { id:2,  name:'Ramen',       img:'icons/ramen.jpg' },
+  { id:3,  name:'Udon',        img:'icons/udon.jpg' },
+  { id:4,  name:'Tempura',     img:'icons/tempura.jpg' },
+  { id:5,  name:'Takoyaki',    img:'icons/takoyaki.jpg' },
+  { id:6,  name:'Okonomiyaki', img:'icons/okonomiyaki.jpg' },
+  { id:7,  name:'Yakitori',    img:'icons/yakitori.jpg' },
+  { id:8,  name:'Tonkatsu',    img:'icons/tonkatsu.jpg' },
+  { id:9,  name:'Donburi',     img:'icons/donburi.jpg' },
+  { id:10, name:'Curry',       img:'icons/curry.jpg' },
+  { id:11, name:'Mochi',       img:'icons/mochi.jpg' },
+  { id:12, name:'Taiyaki',     img:'icons/taiyaki.jpg' },
+  { id:13, name:'Onigiri',     img:'icons/onigiri.jpg' },
+  { id:14, name:'Gyoza',       img:'icons/gyoza.jpg' },
+  { id:15, name:'Yakisoba',    img:'icons/yakisoba.jpg' },
+  { id:16, name:'Edamame',     img:'icons/edamame.jpg' },
+  { id:17, name:'Soba',        img:'icons/soba.jpg' },
+  { id:18, name:'Shabu Shabu', img:'icons/shabu-shabu.jpg' },
 ];
 
 const STORAGE_KEY = 'jp-bingo-manga-v1';
@@ -827,10 +817,9 @@ function renderGrid() {
 
       <div class="food-wrap">
         <img class="food-img"
-             src="${TW}${food.cp}.svg"
+             src="${food.img}"
              alt="${food.name}"
              loading="lazy"
-             onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'${food.fb}',style:'font-size:52px;line-height:1;filter:drop-shadow(-2px -2px 0 #0d0d0d) drop-shadow(2px 2px 0 #0d0d0d)'}))"
         >
       </div>
 
